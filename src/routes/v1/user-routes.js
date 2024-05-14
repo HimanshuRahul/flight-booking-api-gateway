@@ -4,6 +4,8 @@ const { UserMiddlewares } = require("../../middlewares");
 
 const router = express.Router();
 
-router.post("/", UserController.signup);
+router.post("/signup", UserController.signup);
+
+router.post("/signin", UserController.signin);
 
 module.exports = router;
