@@ -4,7 +4,7 @@ const AppError = require("../utils/errors/app-error");
 const { Auth } = require("../utils/common");
 const userRepo = new UserRepository();
 
-const { checkPassword, createToken } = Auth;
+const { checkPassword, createToken, verifyToken } = Auth;
 
 async function create(data) {
   try {
@@ -54,7 +54,33 @@ async function signin(data) {
   }
 }
 
+async function isAuthenticated(token) {
+  try {
+    if (!token) {
+      throw new AppError("Missing JWT Token", StatusCodes.BAD_REQUEST);
+    }
+    const response = verifyToken(token);
+    const user = await userRepo.get(response.id);
+    if (!user) {
+      throw new AppError("No user found", StatusCodes.NOT_FOUND);
+    }
+    return user.id;
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    if (error.name === "JsonWebTokenError") {
+      throw new AppError("Invalid JWT Token", StatusCodes.BAD_REQUEST);
+    }
+
+    console.log(error);
+    throw new AppError(
+      "Something went wrong.",
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+
 module.exports = {
   create,
   signin,
+  isAuthenticated,
 };
